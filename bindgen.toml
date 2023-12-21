@@ -1,0 +1,11 @@
+interrupt_number = 0x80
+function_sig = 0x0000 # Signature of the function offsets, zero since we don't use it.
+function_register = "r8"
+bindings = [
+    { name = "print", ret = "u64", offset = 0x6, args = [
+        { name = "ptr", ty = "*const u8", reg = "r9" },
+        { name = "len", ty = "usize", reg = "r10" }
+    ]},
+    { name = "max_function", ret = "u64", offset = 0xFFFF, args = []}
+
+]
