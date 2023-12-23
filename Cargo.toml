@@ -10,7 +10,6 @@ readme = "README.md"
 keywords = ["interrupt", "bindgen", "rust"]
 categories = ["command-line-utilities", "no-std"]
 publish = true
-homepage = "proton-dev.net/projects?gh=interrupt-bindgen"
 documentation = "https://docs.rs/interrupt-bindgen"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
