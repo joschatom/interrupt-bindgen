@@ -2,6 +2,16 @@
 name = "interrupt-bindgen"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+authors = ["Joscha Egloff <joscha.egloff@pm.me>"]
+description = "A tool to generate interrupt bindings."
+repository = "https://github.com/joschatom/interrupt-bindgen"
+readme = "README.md"
+keywords = ["interrupt", "bindgen", "rust"]
+categories = ["command-line-utilities", "no-std"]
+publish = true
+homepage = "proton-dev.net/projects?gh=interrupt-bindgen"
+documentation = "https://docs.rs/interrupt-bindgen"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
