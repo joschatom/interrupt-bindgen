@@ -6,7 +6,9 @@
 
 use std::path::PathBuf;
 
-
+/// An argument specification
+/// 
+/// This is used to specify the arguments of a function
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct ArgSpec{
     pub name: String,
@@ -15,6 +17,8 @@ pub struct ArgSpec{
 }
 
 /// A binding specification
+/// 
+/// This is used to specify a binding
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Binding{
     pub name: String,
@@ -23,6 +27,9 @@ pub struct Binding{
     pub ret: String,
 }
 
+/// A bindgen specification
+/// 
+/// This is used to parse the bindgen.toml file
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct Bindgen{
     pub interrupt_number: u16,
@@ -31,6 +38,15 @@ pub struct Bindgen{
     pub function_register: String,
 }
 
+/// Loads a bindgen specification from a file
+/// 
+/// Arguments:
+/// 
+/// * `file` - The file to load the specification from
+/// 
+/// Returns:
+/// 
+/// * The bindgen specification
 pub fn load(file: PathBuf) -> Bindgen{
     toml::from_str(
         std::fs::read_to_string(file).unwrap().as_str()

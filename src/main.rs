@@ -1,15 +1,41 @@
 use std::{path::PathBuf, str::FromStr};
 
+mod args;
 mod codegen;
 mod spec;
 
+/// The type for code
+/// 
+/// # Example
+/// ```rust
+/// let code: Code = Code::from_str("println!(\"{}\", 0)").unwrap();
+/// ```
+/// 
+/// # Output
+/// ```rust
+/// println!("{}", 0)
+/// ```
 pub type Code = String;
-
-
 
 static mut VERBOSE_MODE: bool = false;
 static mut CURRENT_BINDING: Option<String> = None;
 
+/// Prints a message if verbose mode is enabled
+/// 
+/// # Arguments
+/// 
+/// * `s` - The message to print
+/// 
+/// 
+/// # Example
+/// verbose_println("Hello World");
+/// ```
+/// 
+/// # Output
+/// 
+/// ```text
+/// [BINDGEN] Hello World
+/// ```
 fn verbose_println<T: core::fmt::Display>(s: T){
     unsafe {
         if VERBOSE_MODE{
@@ -18,78 +44,86 @@ fn verbose_println<T: core::fmt::Display>(s: T){
     }
 }
 
+/// Gets the current binding name
+/// 
+/// # Example
+/// 
+/// ```rust
+/// set_current_binding("TEST".to_string());
+/// assert_eq!(get_current_binding(), "TEST");
+/// verbose_println("Hello World");
+/// ```
+/// 
+/// # Output
+/// [BINDGEN | TEST] Hello World
+/// ```text
 fn get_current_binding() -> String{
     unsafe {
         CURRENT_BINDING.clone().unwrap_or("BINDGEN".to_string())
     }
 }
 
+/// Resets the current binding name
+/// 
+/// # Example
+/// 
+/// ```rust
+/// 
+/// set_current_binding("TEST".to_string());
+/// assert_eq!(get_current_binding(), "TEST");
+/// reset_current_binding();
+/// ```
 fn reset_current_binding(){
     unsafe {
         CURRENT_BINDING = None;
     }
 }
 
+/// Sets the current binding name
+/// 
+/// # Arguments
+/// 
+/// * `binding` - The binding name to set
+/// 
+/// # Example
+/// 
+/// ```rust
+/// 
+/// set_current_binding("TEST".to_string());
+/// assert_eq!(get_current_binding(), "TEST");
+/// 
+/// ```
+/// 
+/// # Output
+/// 
+/// ```text
+/// [BINDGEN | TEST] { ... }
+/// ```
 fn set_current_binding(binding: String){
     unsafe {
         CURRENT_BINDING = Some(format!("BINDGEN | {}", binding.to_uppercase()));
     }
 }
 
-
+/// Main function
+/// 
+/// Binds the command line arguments and runs the bindgen
+/// 
+/// Arguments:
+/// 
+/// * `spec` - The specification file to use, defaults to bindgen.toml
+/// * `output` - The output file to use, defaults to bindings.rs
+/// * `target` - The target triple to use, defaults to x86_64-unknown-none
+/// * `no-build` - Only compile the output file, don't build it
+/// * `no-format` - Only format the output file, don't build it
+/// * `verbose` - Print verbose output
+/// 
+/// It's not recommended to use this function directly, use the command line interface instead.
 fn main() {
 
-    let  mut args_cmd = clap::Command::new("bindgen")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author("Joscha Egloff <joscha.egloff@pm.me>")
-        .about("Generates Bindings for Interrupts that call Functions using Offsets")
-        .arg(
-            clap::Arg::new("spec")
-                .help("The specification file to use, defaults to bindgen.toml")
-                .required(false)
-                .default_value("bindgen.toml")
-                .index(1)
-        )
-        .arg(
-            clap::Arg::new("output")
-                .help("The output file to use, defaults to bindings.rs")
-                .required(false)
-                .default_value("bindings.rs")
-                .index(2)
-        )
-        .arg(
-            clap::Arg::new("target")
-                .help("The target triple to use, defaults to x86_64-unknown-none")
-                .required(false)
-                .default_value("x86_64-unknown-none")
-                .index(3)
-        )
-        .arg(
-            clap::Arg::new("no-build")
-                .help("Only compile the output file, don't build it")
-                .short('c')
-                .long("no-build")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
-        )
-        .arg(
-            clap::Arg::new("no-format")
-                .help("Only format the output file, don't build it")
-                .short('g')
-                .long("no-format")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
-        )
-        .arg(
-            clap::Arg::new("verbose")
-                .help("Print verbose output")
-                .short('v')
-                .long("verbose")
-                .num_args(0)
-                .action(clap::ArgAction::SetTrue)
-        );
+    let args_cmd = args::make_command();
 
-    let mut args = args_cmd.get_matches();
+    let args = args_cmd.get_matches();
 
     unsafe {
         VERBOSE_MODE = args.get_flag("verbose");
@@ -97,6 +131,8 @@ fn main() {
 
     let spec_file = args.get_one::<String>("spec").unwrap();
     let output_file = args.get_one::<String>("output").unwrap();
+    let build_type = args.get_one::<String>("build-type").unwrap();
+    let build_output_file = args.get_one::<String>("build-output").unwrap();
     let target = args.get_one::<String>("target").unwrap();
 
 
@@ -145,10 +181,10 @@ fn main() {
     
     if !args.get_flag("no-build"){
         println!("Building output file");
-        std::process::Command::new("rustc").args(&["--crate-type", "staticlib", "--edition", "2021", "--target", target.as_str(), "-C", "panic=abort", "-o",  format!("lib{}.a",output_file.as_str()).as_str(), output_file]).status().unwrap();
+        std::process::Command::new("rustc").args(&["--crate-type", build_type, "--edition", "2021", "--target", target.as_str(), "-C", "panic=abort", "-o",  build_output_file]).status().unwrap();
     }
 
-    println!("[BINDGEN] Bindgen complete, library file: {}, output file: {}!", format!("lib{}.a",output_file.trim_end_matches(".rs")).as_str(), output_file.as_str());
+    println!("[BINDGEN] Bindgen complete, library file: {}, output file: {}!", format!("{}.a",output_file.trim_end_matches(".rs")).as_str(), output_file.as_str());
 
     reset_current_binding();
 

@@ -9,3 +9,4 @@ bindings = [
     { name = "max_function", ret = "u64", offset = 0xFFFF, args = []}
 
 ]
+output-override = "bindings.rs.~local" # This is the file that will be generated, isn't checked into git.
